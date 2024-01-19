@@ -16,6 +16,7 @@ function Gameboard() {
             }
             setGameOver(true);
             setActiveId([]);
+            setScore(0);
         } else {
             const newActiveIds = [];
             const usedIndices = [];
@@ -111,23 +112,30 @@ function Gameboard() {
 
     return (
         gameOver ?
-            <div>
-            <div className="best-score">{bestScore}</div>
-                Gameover.
-                <button onClick={changeGameState}>Try again</button>
+            <div className="gameover">
+                <div className="scorecard">Best Score : {bestScore}</div>
+                <div className="end-message">Gameover</div>
+                <button className="gameover-btn" onClick={changeGameState}>Try Again</button>
             </div> : 
             currentCards.length > 0 ?
                 <div className="gameboard">
-                    <div className="score">Score : {score} Best : {bestScore}</div>
-                    {currentCards.map((card) => (
+                    <div className="scorecard">
+                        <div className="score">Score : {score}</div>
+                        <div className="best-score">Best Score : {bestScore}</div>
+                    </div>
+                    
+                    <div className="card">
+                        {currentCards.map((card) => (
                         <div className="card-container" key={card.id} data-id={card.id} onClick={setNewActiveCard}>
-                            <div className="card" data-id={card.id}>{card.name}</div>
-                            <img src={card.imageURL} alt={card.name} data-id={card.id} />
+                            <div className="card-title" data-id={card.id}>{card.name}</div>
+                            <img src={card.imageURL} alt={card.name} className="card-img" data-id={card.id} />
                         </div>
                     ))}
+                    </div>
+                    
                 </div> :
                 <div className="gameboard">
-                    Meow
+                    Loading..
                 </div>
     )
 }
