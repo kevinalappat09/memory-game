@@ -1,30 +1,44 @@
 import { useEffect, useState } from "react";
 
 function Gameboard() {
+    const totalCards = 5;
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
     const [currentCards, setCurrentCards] = useState([]);
     const [activeId, setActiveId] = useState([]);
+    const [bestScore, setBestScore] = useState(0);
 
     const setNewActiveCard = (e) => {
         const id = Number(e.currentTarget.getAttribute("data-id"));
         if(activeId.includes(id)) {
+            if(score > bestScore) {
+                setBestScore(score);
+            }
             setGameOver(true);
+            setActiveId([]);
         } else {
             const newActiveIds = [];
-            const newRandom1 = Math.floor(Math.random() * 2);
-            newActiveIds.push(currentCards[newRandom1].id);
+            const usedIndices = [];
 
-            let newRandom2 = Math.floor(Math.random() * 2);
-            while(newRandom2 === newRandom1) {
-                newRandom2 = Math.floor(Math.random() * 2);
+            for (let i = 0; i < totalCards-1; i++) {
+                let newRandom = Math.floor(Math.random() * totalCards);
+
+                // Ensure that the newRandom index has not been used before
+                while (usedIndices.includes(newRandom)) {
+                newRandom = Math.floor(Math.random() * totalCards);
+                }
+
+                usedIndices.push(newRandom);
+                newActiveIds.push(currentCards[newRandom].id);
             }
-            newActiveIds.push(currentCards[newRandom2].id);
-            
             setActiveId(newActiveIds);
             setScore(score+1);
         }
         
+    }
+
+    const changeGameState = () => {
+        setGameOver(false);
     }
 
     useEffect(() => {
@@ -34,35 +48,19 @@ function Gameboard() {
             const getThreeRandomPokemon = async () => {
                 const getRandomID = () => Math.floor(Math.random() * 500 + 1);
 
-                const response1 = await fetch(`https://pokeapi.co/api/v2/pokemon/${getRandomID()}/`);
-                const data1 = await response1.json();
+                const newCards = [];
 
-                const response2 = await fetch(`https://pokeapi.co/api/v2/pokemon/${getRandomID()}/`);
-                const data2 = await response2.json();
+                for(let i=0; i<totalCards; i++) {
 
-                const response3 = await fetch(`https://pokeapi.co/api/v2/pokemon/${getRandomID()}/`);
-                const data3 = await response3.json();
-
-                const PokemonObject1 = {
-                    id: data1.id,
-                    name: data1.name,
-                    imageURL: data1.sprites.front_default,
+                    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${getRandomID()}/`);
+                    const data = await response.json();
+                    const pokemonObject = {
+                        id : data.id,
+                        name : data.name,
+                        imageURL : data.sprites.front_default,
+                    }
+                    newCards.push(pokemonObject);
                 }
-
-                const PokemonObject2 = {
-                    id: data2.id,
-                    name: data2.name,
-                    imageURL: data2.sprites.front_default,
-                }
-
-                const PokemonObject3 = {
-                    id: data3.id,
-                    name: data3.name,
-                    imageURL: data3.sprites.front_default,
-                }
-
-                const newCards = [PokemonObject1, PokemonObject2, PokemonObject3];
-
                 if (isMounted) {
                     setCurrentCards(newCards);
                 }
@@ -93,9 +91,8 @@ function Gameboard() {
                     name: data1.name,
                     imageURL: data1.sprites.front_default,
                 }
-
-                const activeCardPosition = Math.floor(Math.random() * 2);
-                const newCards = [lastActivePokemons[0], lastActivePokemons[1]];
+                const activeCardPosition = Math.floor(Math.random() * 4);
+                const newCards = [lastActivePokemons[0], lastActivePokemons[1], lastActivePokemons[2], lastActivePokemons[3]];
                 newCards.splice(activeCardPosition,0,PokemonObject1);
 
                 if (isMounted) {
@@ -115,11 +112,13 @@ function Gameboard() {
     return (
         gameOver ?
             <div>
-                Gameover. Reload the website to try again.
+            <div className="best-score">{bestScore}</div>
+                Gameover.
+                <button onClick={changeGameState}>Try again</button>
             </div> : 
             currentCards.length > 0 ?
                 <div className="gameboard">
-                    <div className="score">{score}</div>
+                    <div className="score">Score : {score} Best : {bestScore}</div>
                     {currentCards.map((card) => (
                         <div className="card-container" key={card.id} data-id={card.id} onClick={setNewActiveCard}>
                             <div className="card" data-id={card.id}>{card.name}</div>
